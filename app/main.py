@@ -94,6 +94,7 @@ def process():
     case_frame = CaseFrame(raw_text=text, distortions=distortions,
                             emotion_scores=emotion_scores, core_emotion=core_emotion)
     case_frame.build_summary()
+    case_frame.recurring_theme_note = repository.build_recurring_theme_note()
 
     # 6. Principle selection.
     techniques = select_techniques(case_frame)

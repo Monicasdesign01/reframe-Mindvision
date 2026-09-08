@@ -52,7 +52,7 @@ _PROMPT_TEMPLATE = """You are a supportive, evidence-informed narrative writer. 
 "{raw_text}"
 
 Their main emotion is {core_emotion}. A relevant psychological technique is: {technique_name} - {technique_description}
-
+{recurring_theme_line}
 Write a short, warm, second-person narrative in exactly four labeled parts. Do not skip any part. Do not promise a guaranteed outcome or use words like "definitely", "guaranteed", or "always". Keep each part to 1-3 sentences.
 
 CURRENT REALITY: describe their situation and feeling with empathy, using their own words where natural.
@@ -78,11 +78,19 @@ class NarrativeGenerator:
             self._model = AutoModelForSeq2SeqLM.from_pretrained(_MODEL_NAME_FALLBACK)
 
     def generate(self, case_frame, technique: dict) -> str:
+        recurring_theme_line = ""
+        if getattr(case_frame, "recurring_theme_note", ""):
+            recurring_theme_line = (
+                f"\nNote: {case_frame.recurring_theme_note}. Gently acknowledge this pattern "
+                f"in the CURRENT REALITY part, without being repetitive or discouraging.\n"
+            )
+
         prompt = _PROMPT_TEMPLATE.format(
             raw_text=case_frame.raw_text,
             core_emotion=case_frame.core_emotion or "unclear",
             technique_name=technique["name"],
             technique_description=technique["description"],
+            recurring_theme_line=recurring_theme_line,
         )
         inputs = self._tokenizer(prompt, return_tensors="pt", truncation=True, max_length=512)
         outputs = self._model.generate(
@@ -129,9 +137,13 @@ class NarrativeGenerator:
         if has_all_headers and not has_harmful_content and not is_echo:
             return text
 
+        theme_sentence = ""
+        if getattr(case_frame, "recurring_theme_note", ""):
+            theme_sentence = f" You may notice that {case_frame.recurring_theme_note}."
+
         return (
             f"CURRENT REALITY: {case_frame.raw_text.strip()} It makes sense that this brings up "
-            f"{case_frame.core_emotion or 'difficult feelings'}.\n\n"
+            f"{case_frame.core_emotion or 'difficult feelings'}.{theme_sentence}\n\n"
             f"REFRAME: {technique['name']} suggests looking at this through a different lens: "
             f"{technique['description']}\n\n"
             f"DESIRED FUTURE: With some practice, it's realistic that this could feel a little more "
