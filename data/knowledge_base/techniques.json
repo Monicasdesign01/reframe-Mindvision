@@ -70,5 +70,68 @@
     "applies_to_distortions": ["catastrophizing", "all_or_nothing"],
     "applies_to_emotions": ["anger", "fear", "anxiety"],
     "limitations": "Less useful when the core issue is an internal emotional state rather than an external, actionable problem."
+  },
+  {
+    "id": "checking_assumptions",
+    "name": "Checking Assumptions (Interpersonal Effectiveness)",
+    "description": "Treating an assumption about what someone else is thinking as a hypothesis to check (by asking, observing, or seeking evidence) rather than as an established fact.",
+    "citation": "Linehan, M. M. (1993). Cognitive-Behavioral Treatment of Borderline Personality Disorder. Guilford Press.",
+    "applies_to_distortions": ["mind_reading"],
+    "applies_to_emotions": ["fear", "sadness", "anger"],
+    "limitations": "Directly asking isn't always possible or safe in every relationship or context; use judgment about when it's appropriate."
+  },
+  {
+    "id": "thought_record",
+    "name": "Thought Record",
+    "description": "Writing down the situation, the automatic thought, the emotion, and evidence for and against the thought in a structured column format, to counter selectively noticing only the negative.",
+    "citation": "Greenberger, D., & Padesky, C. A. (1995). Mind Over Mood: Change How You Feel by Changing the Way You Think. Guilford Press.",
+    "applies_to_distortions": ["mental_filter", "disqualifying_positive", "magnification_minimization"],
+    "applies_to_emotions": ["sadness", "anger"],
+    "limitations": "Can feel effortful or overly clinical for some people; benefits usually build with repeated practice rather than a single use."
+  },
+  {
+    "id": "cognitive_defusion",
+    "name": "Cognitive Defusion (ACT)",
+    "description": "Noticing a feeling-driven thought as 'just a thought passing through' rather than as literal truth, creating enough distance from it to choose a response instead of reacting automatically.",
+    "citation": "Hayes, S. C., Strosahl, K. D., & Wilson, K. G. (1999). Acceptance and Commitment Therapy: An Experiential Approach to Behavior Change. Guilford Press.",
+    "applies_to_distortions": ["emotional_reasoning"],
+    "applies_to_emotions": ["fear", "sadness", "anger"],
+    "limitations": "Takes practice to feel natural; can seem abstract without guided practice examples."
+  },
+  {
+    "id": "rebt_should_to_prefer",
+    "name": "Should-to-Prefer Reframe (REBT)",
+    "description": "Replacing a rigid 'should' or 'must' demand on yourself or others with a flexible preference, reducing the guilt or anger that comes from an unmet absolute rule.",
+    "citation": "Ellis, A. (1962). Reason and Emotion in Psychotherapy. Lyle Stuart.",
+    "applies_to_distortions": ["should_statements"],
+    "applies_to_emotions": ["anger", "sadness"],
+    "limitations": "Some 'shoulds' reflect genuine values worth keeping; the goal is flexibility, not abandoning all standards."
+  },
+  {
+    "id": "responsibility_pie",
+    "name": "Responsibility Pie",
+    "description": "Listing every factor that contributed to an outcome and assigning each a realistic share of responsibility, to counter taking on 100% of the blame for events with multiple causes.",
+    "citation": "Burns, D. D. (1980). Feeling Good: The New Mood Therapy. William Morrow.",
+    "applies_to_distortions": ["personalization", "blaming"],
+    "applies_to_emotions": ["sadness", "anger"],
+    "limitations": "Not meant to eliminate genuine accountability where it exists; the goal is an accurate share, not zero responsibility."
+  },
+  {
+    "id": "mindful_awareness",
+    "name": "Mindful Awareness of Comparison",
+    "description": "Noticing a comparison thought as it arises, without judgment, and gently redirecting attention back to one's own present experience and progress.",
+    "citation": "Kabat-Zinn, J. (1990). Full Catastrophe Living. Delta.",
+    "applies_to_distortions": ["comparison"],
+    "applies_to_emotions": ["sadness", "surprise"],
+    "limitations": "Mindfulness skills build gradually with practice; a single attempt may not immediately reduce the comparison thought's intensity."
+  },
+  {
+    "id": "locus_of_control_mapping",
+    "name": "Locus of Control Mapping",
+    "description": "Sorting a situation's elements into what is genuinely within your control, what you can influence, and what isn't yours to control, to counter both helplessness and over-responsibility.",
+    "citation": "Rotter, J. B. (1966). Generalized expectancies for internal versus external control of reinforcement. Psychological Monographs, 80(1), 1-28.",
+    "applies_to_distortions": ["control_fallacy"],
+    "applies_to_emotions": ["fear", "anger", "sadness"],
+    "limitations": "Sorting can be genuinely difficult in ambiguous situations where influence is real but partial."
   }
 ]
