@@ -74,6 +74,21 @@ publisher's published weights and used through standard inference calls.
    (`app/db/repository.find_recurring_themes`); and the exact-match response
    cache.
 
+## A real bug found via end-to-end testing: OpenMP runtime conflict
+
+The individual pipeline stages all tested fine in isolation, but the
+first real HTTP request that exercised both ASR (faster-whisper /
+CTranslate2) and a torch-based stage (narrative generation) in the same
+process crashed immediately with `OMP: Error #15: Initializing
+libiomp5md.dll, but found libiomp5md.dll already initialized` -- 
+CTranslate2 and PyTorch's bundled MKL each link their own OpenMP runtime,
+and Windows aborts the process rather than silently allowing two. This
+only shows up when both are loaded in one long-lived process (the Flask
+app), not in any single-stage script or test -- which is exactly why
+per-module testing didn't catch it and only a real end-to-end HTTP test
+did. Fixed by setting `KMP_DUPLICATE_LIB_OK=TRUE` at the top of
+`app/main.py` before any torch-dependent import.
+
 ## Why no fine-tuning in the core build
 
 The original brief for the pipeline build said "all pretrained, zero

@@ -13,7 +13,16 @@ immediately after, since a typical student laptop can't hold all five in
 memory at once.
 """
 
+# Must be set before torch/CTranslate2/onnxruntime are imported anywhere
+# in the process. faster-whisper (CTranslate2) and PyTorch's bundled MKL
+# both link their own OpenMP runtime; loading both in one process aborts
+# with "OMP: Error #15: Initializing libiomp5md.dll, but found
+# libiomp5md.dll already initialized" the first time a request needs both
+# ASR and any torch-based stage (which is every real request). This is the
+# standard, documented workaround for that conflict.
 import os
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+
 import subprocess
 import sys
 import threading
