@@ -26,6 +26,46 @@ def test_detects_overgeneralization():
     assert "overgeneralization" in detect_distortions("Nothing ever works out for me.")
 
 
+def test_detects_mind_reading():
+    assert "mind_reading" in detect_distortions("They must think I'm so incompetent.")
+
+
+def test_detects_mental_filter():
+    assert "mental_filter" in detect_distortions("All I can see is the bad in this whole situation.")
+
+
+def test_detects_disqualifying_positive():
+    assert "disqualifying_positive" in detect_distortions("It was just luck, that doesn't count.")
+
+
+def test_detects_magnification_minimization():
+    assert "magnification_minimization" in detect_distortions("This is way blown out of proportion.")
+
+
+def test_detects_emotional_reasoning():
+    assert "emotional_reasoning" in detect_distortions("I feel like a failure, so I must be one.")
+
+
+def test_detects_should_statements():
+    assert "should_statements" in detect_distortions("I should have been better prepared for this.")
+
+
+def test_detects_personalization():
+    assert "personalization" in detect_distortions("It's all my fault that this happened.")
+
+
+def test_detects_blaming():
+    assert "blaming" in detect_distortions("It's all his fault that I feel this way.")
+
+
+def test_detects_comparison():
+    assert "comparison" in detect_distortions("Everyone else is so much more successful than me.")
+
+
+def test_detects_control_fallacy():
+    assert "control_fallacy" in detect_distortions("I have no control over anything in my life.")
+
+
 def test_no_distortion_on_neutral_text():
     assert detect_distortions("I had a sandwich for lunch today.") == []
 

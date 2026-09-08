@@ -8,9 +8,13 @@ defensible sentence-by-sentence in the viva, and the space of clearly
 worded distortion cues is small enough that rules generalize reasonably
 well for a first version.
 
-Five distortions covered (Phase 1): all-or-nothing thinking, fortune
-telling, self-labeling, catastrophizing, overgeneralization.
-Phase 2 grows this list toward ~15.
+Five distortions covered in Phase 1: all-or-nothing thinking, fortune
+telling, self-labeling, catastrophizing, overgeneralization. Phase 2 adds
+ten more (mind reading, mental filter, disqualifying the positive,
+magnification/minimization, emotional reasoning, should statements,
+personalization, blaming, comparison, control fallacy), drawn from the
+standard CBT distortion taxonomy (Burns, D. D. (1980). Feeling Good: The
+New Mood Therapy. William Morrow.), for 15 total.
 """
 
 import re
@@ -79,6 +83,104 @@ _RULES = [
             r"\bno\s+one\s+(ever|will)\b",
         ],
         "Drawing a broad, permanent conclusion from a single event.",
+    ),
+    (
+        "mind_reading",
+        [
+            r"\bthey\s+(must\s+)?(think|believe)\s+i'?m\b",
+            r"\bhe\s+(must\s+)?(thinks?|believes?)\s+i'?m\b",
+            r"\bshe\s+(must\s+)?(thinks?|believes?)\s+i'?m\b",
+            r"\beveryone\s+(is\s+)?(judging|laughing\s+at)\s+me\b",
+            r"\bi\s+can\s+tell\s+(they|he|she)\s+(hates?|doesn'?t\s+like)\s+me\b",
+        ],
+        "Assuming you know what others are thinking about you without evidence.",
+    ),
+    (
+        "mental_filter",
+        [
+            r"\ball\s+i\s+(can\s+)?(see|think\s+about)\s+is\s+(the\s+)?(bad|negative|wrong)\b",
+            r"\bthe\s+only\s+thing\s+that\s+matters\s+is\s+(the\s+)?(one\s+)?(mistake|failure)\b",
+            r"\bnothing\s+good\s+(happened|counts)\b",
+            r"\bignor\w*\s+(everything|all)\s+(good|positive)\b",
+        ],
+        "Dwelling on a single negative detail while filtering out everything positive.",
+    ),
+    (
+        "disqualifying_positive",
+        [
+            r"\bthat\s+doesn'?t\s+count\b",
+            r"\bit\s+was\s+just\s+luck\b",
+            r"\banyone\s+(could|would)\s+have\s+done\s+(that|it)\b",
+            r"\bi\s+got\s+lucky,?\s+that'?s\s+all\b",
+        ],
+        "Dismissing positive experiences by insisting they don't count.",
+    ),
+    (
+        "magnification_minimization",
+        [
+            r"\bit'?s\s+a\s+huge\s+deal\b",
+            r"\bthis\s+is\s+(way\s+)?blown\s+out\s+of\s+proportion\b",
+            r"\bit'?s\s+nothing,?\s+i\s+guess\b",
+            r"\bmy\s+(achievement|success)\s+(doesn'?t|is\s+not)\s+(matter|important)\b",
+        ],
+        "Either blowing a problem out of proportion or shrinking your own achievements.",
+    ),
+    (
+        "emotional_reasoning",
+        [
+            r"\bi\s+feel\s+(like\s+)?(a\s+)?(failure|stupid|worthless|useless)\s*,?\s+so\s+i\s+must\s+be\b",
+            r"\bi\s+feel\s+it,?\s+so\s+it\s+must\s+be\s+true\b",
+            r"\bi\s+feel\s+(anxious|scared),?\s+so\s+something\s+bad\s+(must|will)\s+happen\b",
+        ],
+        "Assuming that because you feel a certain way, it must reflect objective reality.",
+    ),
+    (
+        "should_statements",
+        [
+            r"\bi\s+should\s+(have\s+)?(be|been|do|done)\b",
+            r"\bi\s+must\s+(be|always|never)\b",
+            r"\bi\s+ought\s+to\s+(be|have)\b",
+            r"\bthey\s+should\s+(have\s+)?(know|understand)\b",
+        ],
+        "Holding yourself or others to rigid 'should'/'must' rules that create unnecessary guilt or frustration.",
+    ),
+    (
+        "personalization",
+        [
+            r"\bit'?s\s+(all\s+)?my\s+fault\b",
+            r"\bi\s+caused\s+(this|it|everything)\b",
+            r"\bif\s+(only\s+)?i\s+had\s+(done|been)\b.*\bwouldn'?t\s+have\s+happened\b",
+            r"\bbecause\s+of\s+me,?\s+(everyone|everything)\b",
+        ],
+        "Taking responsibility for events that are largely outside your control.",
+    ),
+    (
+        "blaming",
+        [
+            r"\bit'?s\s+(all\s+)?(his|her|their|your)\s+fault\b",
+            r"\bthey\s+(ruined|wrecked)\s+(everything|my\s+life)\b",
+            r"\bbecause\s+of\s+(him|her|them|you),?\s+i\b",
+        ],
+        "Holding someone else entirely responsible for your own feelings or situation.",
+    ),
+    (
+        "comparison",
+        [
+            r"\beveryone\s+else\s+(is|has|seems)\b",
+            r"\bcompared\s+to\s+(them|him|her|everyone)\b",
+            r"\bwhy\s+can'?t\s+i\s+be\s+(more\s+)?like\b",
+            r"\bthey'?re\s+(so\s+much\s+)?(better|more\s+successful)\s+than\s+me\b",
+        ],
+        "Measuring your own worth against others in a way that consistently favors them.",
+    ),
+    (
+        "control_fallacy",
+        [
+            r"\bi\s+have\s+no\s+control\s+over\s+(anything|my\s+life)\b",
+            r"\bthere'?s\s+nothing\s+i\s+can\s+do\s+about\s+it\b",
+            r"\bi'?m\s+responsible\s+for\s+(everyone'?s|their)\s+happiness\b",
+        ],
+        "Seeing yourself as either helplessly controlled by external forces or as responsible for everyone around you.",
     ),
 ]
 
