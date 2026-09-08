@@ -4,7 +4,7 @@ Flask orchestrator. Wires the pipeline stages together in order:
   input -> (ASR if audio) -> safety gate -> distortion detection ->
   emotion detection -> Case Frame -> principle selector ->
   narrative generation -> [text returned] -> TTS (sync) ->
-  image generation (background thread) -> save to SQLite
+  image generation (background thread, subprocess-isolated) -> save to SQLite
 
 RAM discipline: spaCy and the emotion classifier stay resident across
 requests (small). Whisper, FLAN-T5, SD-Turbo, and Kokoro are loaded only
@@ -13,10 +13,10 @@ immediately after, since a typical student laptop can't hold all five in
 memory at once.
 """
 
-import gc
 import os
+import subprocess
+import sys
 import threading
-import time
 import uuid
 
 from flask import Flask, request, jsonify, render_template, send_from_directory
@@ -191,21 +191,44 @@ def _build_image_prompt(case_frame, technique) -> str:
     return build_image_prompt(case_frame, technique)
 
 
-def _generate_image_background(session_id: int, prompt: str):
-    from app.image_gen.generator import ImageGenerator
+_IMAGE_WORKER_CODE = """
+import sys
+sys.path.insert(0, {project_root!r})
+from app.image_gen.generator import ImageGenerator
 
+gen = ImageGenerator()
+gen.generate({prompt!r}, {output_path!r})
+gen.unload()
+"""
+
+
+def _generate_image_background(session_id: int, prompt: str):
+    """
+    Runs SD-Turbo in a separate subprocess rather than in-thread. On a
+    RAM-constrained machine, SD-Turbo's VAE-decode step can segfault (see
+    README's RAM note) -- and a segfault kills the entire process it runs
+    in, threads included, which would take down the whole Flask server and
+    every other in-flight request along with it. Isolating it in a
+    subprocess means a crash there only fails that one image.
+    """
     output_path = os.path.join(MEDIA_DIR, f"session_{session_id}.png")
     try:
-        generator = ImageGenerator()
-        try:
-            generator.generate(prompt, output_path)
-        finally:
-            generator.unload()
-        repository.update_image_path(session_id, output_path)
-        _image_status[str(session_id)] = {"status": "done", "path": output_path}
+        code = _IMAGE_WORKER_CODE.format(project_root=BASE_DIR, prompt=prompt, output_path=output_path)
+        result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, timeout=300)
+
+        if result.returncode == 0 and os.path.exists(output_path):
+            repository.update_image_path(session_id, output_path)
+            _image_status[str(session_id)] = {"status": "done", "path": output_path}
+        else:
+            _image_status[str(session_id)] = {"status": "error", "path": None, "error": result.stderr[-500:]}
     except Exception as e:
         _image_status[str(session_id)] = {"status": "error", "path": None, "error": str(e)}
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    # debug=False by default: the debug reloader spawns a second process
+    # that reloads every resident model (spaCy, emotion classifier) a
+    # second time, which is a real problem on a RAM-constrained machine
+    # (see README's RAM note). Set FLASK_DEBUG=1 if you want the reloader
+    # on a machine with more headroom.
+    app.run(debug=bool(os.environ.get("FLASK_DEBUG")), port=5000)
