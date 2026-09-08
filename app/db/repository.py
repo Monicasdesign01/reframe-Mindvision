@@ -59,18 +59,33 @@ def list_sessions(limit: int = 50):
 def find_recurring_themes(min_occurrences: int = 3):
     """
     Very simple recurring-theme signal (Phase 2): counts how often each
-    technique id has been selected across past sessions. If a technique
-    (proxy for "theme") has been selected >= min_occurrences times, surface
-    a note about it so it can be folded into future narrative prompts.
+    distortion has appeared across past sessions. Distortion type is used
+    as the "theme" proxy (rather than raw topic extraction, which is out of
+    scope) since it captures a recurring pattern of thinking, not just a
+    recurring subject. If a distortion has appeared >= min_occurrences
+    times, it's surfaced so it can be folded into future narrative prompts.
     """
     conn = get_connection()
-    rows = conn.execute("SELECT techniques FROM sessions").fetchall()
+    rows = conn.execute("SELECT distortions FROM sessions").fetchall()
     conn.close()
 
     counts = {}
     for row in rows:
-        techniques = json.loads(row["techniques"])
-        for t in techniques:
-            counts[t] = counts.get(t, 0) + 1
+        distortions = json.loads(row["distortions"])
+        for d in distortions:
+            counts[d] = counts.get(d, 0) + 1
 
-    return {t: c for t, c in counts.items() if c >= min_occurrences}
+    return {d: c for d, c in counts.items() if c >= min_occurrences}
+
+
+def build_recurring_theme_note(min_occurrences: int = 3) -> str:
+    """
+    Human-readable version of find_recurring_themes, e.g. "self-labeling
+    has come up 3 times recently". Returns "" if nothing recurs yet.
+    """
+    themes = find_recurring_themes(min_occurrences)
+    if not themes:
+        return ""
+    top_theme, count = max(themes.items(), key=lambda kv: kv[1])
+    readable = top_theme.replace("_", " ")
+    return f"{readable} has come up {count} times in recent sessions"
