@@ -22,6 +22,32 @@ _BANNED_PHRASES = [
     "you will certainly", "100% certain", "will always work out",
 ]
 
+# FLAN-T5-base's free-form output was observed during testing to
+# occasionally hallucinate content unrelated to the prompt, including
+# insulting language directed at the reader (e.g. calling them a "cynical
+# idiot"). A missing section header isn't the only failure mode worth
+# catching, so generated text is also rejected outright (falling back to
+# the deterministic template) if it contains any of these.
+_HARMFUL_PATTERNS = [
+    "idiot", "stupid", "worthless", "pathetic", "loser", "moron", "cynical",
+    "hopeless case", "give up", "your fault", "deserve this",
+]
+
+# Also observed during testing: the model sometimes just echoes the
+# instruction text back verbatim instead of writing a narrative. Since the
+# prompt's own instructions literally contain the four required header
+# words, an echo passes the header check while containing no real content.
+# These phrases are unique to the instructions themselves (never something
+# an actual narrative would say), so their presence means the model echoed
+# rather than generated.
+_ECHO_MARKERS = [
+    "describe their situation and feeling",
+    "gently introduce the technique above",
+    "describe a realistic, modest, positive future",
+    "give one small, concrete, doable action",
+    "write a short, warm, second-person narrative",
+]
+
 _PROMPT_TEMPLATE = """You are a supportive, evidence-informed narrative writer. Someone shared this worry:
 "{raw_text}"
 
@@ -62,14 +88,13 @@ class NarrativeGenerator:
         outputs = self._model.generate(
             **inputs,
             max_new_tokens=300,
-            do_sample=True,
-            temperature=0.7,
-            top_p=0.9,
+            do_sample=False,
+            num_beams=4,
             no_repeat_ngram_size=3,
         )
         text = self._tokenizer.decode(outputs[0], skip_special_tokens=True)
         text = self._sanitize(text)
-        text = self._ensure_four_parts(text, case_frame, technique)
+        text = self._validate_or_fallback(text, case_frame, technique)
         return text
 
     def _sanitize(self, text: str) -> str:
@@ -82,16 +107,26 @@ class NarrativeGenerator:
                 lowered = text.lower()
         return text
 
-    def _ensure_four_parts(self, text: str, case_frame, technique: dict) -> str:
+    def _validate_or_fallback(self, text: str, case_frame, technique: dict) -> str:
         """
-        FLAN-T5-base is prompt-followed reasonably well but not perfectly.
-        If any of the 4 required section headers are missing, fall back to
-        a deterministic template so the output contract (4 parts, always)
-        is guaranteed regardless of generation quality.
+        FLAN-T5-base's free-form output is not reliable enough to trust
+        unconditionally: besides sometimes skipping a required section, it
+        was observed during testing to occasionally hallucinate harmful or
+        unrelated content, or simply echo the instructions back verbatim.
+        Generated text is accepted only if it (a) contains all 4 required
+        headers, (b) contains none of the harmful patterns, and (c) isn't
+        just an echo of the prompt's own instructions; otherwise a
+        deterministic template is used, which guarantees a safe, on-contract
+        output regardless of generation quality.
         """
         required = ["CURRENT REALITY", "REFRAME", "DESIRED FUTURE", "NEXT STEP"]
         upper = text.upper()
-        if all(h in upper for h in required):
+        lowered = text.lower()
+        has_all_headers = all(h in upper for h in required)
+        has_harmful_content = any(p in lowered for p in _HARMFUL_PATTERNS)
+        is_echo = any(p in lowered for p in _ECHO_MARKERS)
+
+        if has_all_headers and not has_harmful_content and not is_echo:
             return text
 
         return (

@@ -1,7 +1,8 @@
 """
-Voice narration using Kokoro-82M (Apache-2.0). Requires the espeak-ng
-system binary to be installed and on PATH (used internally by Kokoro's
-misaki phonemizer for out-of-dictionary words).
+Voice narration using Kokoro-82M (Apache-2.0). Kokoro's misaki phonemizer
+uses the espeak-ng library bundled by the `espeakng-loader` pip package
+(a transitive dependency of kokoro/misaki) for out-of-dictionary words, so
+no system-wide espeak-ng install is required.
 """
 
 import gc
