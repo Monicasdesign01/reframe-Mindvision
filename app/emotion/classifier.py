@@ -54,7 +54,11 @@ class EmotionClassifier:
 
     def __init__(self):
         self._tokenizer = AutoTokenizer.from_pretrained(_MODEL_NAME)
-        self._model = ORTModelForSequenceClassification.from_pretrained(_MODEL_NAME)
+        # The repo hosts both a full-precision and an int8-quantized ONNX
+        # file; explicitly select the quantized one for CPU speed.
+        self._model = ORTModelForSequenceClassification.from_pretrained(
+            _MODEL_NAME, file_name="onnx/model_quantized.onnx"
+        )
         self._pipe = pipeline(
             "text-classification",
             model=self._model,

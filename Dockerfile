@@ -7,8 +7,9 @@ FROM python:3.11-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
-    espeak-ng \
     && rm -rf /var/lib/apt/lists/*
+# espeak-ng is bundled via the kokoro/misaki pip packages (espeakng-loader),
+# no system package needed.
 
 WORKDIR /app
 

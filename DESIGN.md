@@ -48,9 +48,24 @@ publisher's published weights and used through standard inference calls.
 6. **Narrative prompt engineering + output contract enforcement**
    (`app/narrative_gen/generator.py`) — the four-part prompt template, a
    banned-phrase sanitizer (no "you will definitely succeed" language), and
-   a deterministic fallback template that guarantees the four-part
-   structure even when the model's free-form output doesn't include all
-   four headers.
+   a deterministic fallback template used whenever the model's output
+   either misses a required section header or contains harmful/insulting
+   language. This second check exists because testing surfaced a real
+   failure mode: FLAN-T5-base's free-form output occasionally hallucinated
+   content unrelated to the prompt, including, in one observed case,
+   insulting the reader directly. A missing header is not the only way
+   this model can fail, so the validation step checks for both before
+   accepting generated text, and defaults to the safe deterministic
+   template otherwise. This is also why the generation call uses
+   deterministic beam search rather than sampling: sampling produced more
+   varied output but noticeably increased the rate of this kind of
+   hallucination during testing. A third failure mode surfaced too: the
+   model sometimes echoes the prompt's own instructions back verbatim
+   rather than writing a narrative — and since those instructions
+   literally contain the four required header words, an echo passes the
+   header check while containing no real content. The validator also
+   rejects text containing phrases unique to the instructions themselves
+   for this reason.
 
 7. **Overall system design** — the "load only what's needed, release
    immediately" RAM-discipline pattern; the synchronous-text /

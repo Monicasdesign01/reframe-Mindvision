@@ -15,8 +15,12 @@ engineering.
 - **Python 3.11** specifically (not 3.12/3.13/3.14 — some packages here
   don't reliably have Windows wheels yet on newer Python)
 - **ffmpeg** on PATH (used by faster-whisper)
-- **espeak-ng** on PATH (used internally by Kokoro's phonemizer)
 - A free **Hugging Face account** (needed once, for SD-Turbo — see below)
+
+Note: espeak-ng (needed by Kokoro's phonemizer) does **not** need a separate
+system install — the `kokoro`/`misaki` pip packages pull in
+`espeakng-loader`, which bundles the espeak-ng library and data files and
+wires them up automatically.
 - ~3-5GB free disk space for model weights (downloaded on first run, not
   bundled in this repo)
 
@@ -26,9 +30,8 @@ engineering.
 # 1. Install Python 3.11 if you don't have it
 winget install --id Python.Python.3.11 -e
 
-# 2. Install ffmpeg and espeak-ng
+# 2. Install ffmpeg (espeak-ng is bundled via the kokoro/misaki pip packages, no separate install needed)
 winget install --id Gyan.FFmpeg -e
-winget install --id eSpeak-NG.eSpeak-NG -e
 # Restart your terminal after this so PATH updates take effect.
 
 # 3. Create and activate the venv (use the 3.11 launcher explicitly)
