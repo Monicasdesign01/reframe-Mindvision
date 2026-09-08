@@ -1,7 +1,16 @@
 """
-Pre-generates 2-3 full example sessions (text + image + audio) as a
-fallback for the live demo, in case real-time inference is too slow in
+Pre-generates 2-3 full example sessions (text + audio, image separate) as
+a fallback for the live demo, in case real-time inference is too slow in
 the room. Saved under data/samples/.
+
+Image generation is deliberately NOT run here: on a low-RAM machine,
+SD-Turbo's VAE-decode step can segfault (see README's RAM note), and a
+segfault kills the whole Python process -- losing every sample already
+generated in this same run, text and audio included. Text and audio
+generation are stable, so they're generated together and written to
+manifest.json immediately. Run scripts/pregenerate_images.py afterward
+(with more free RAM) to add images to the same manifest one at a time,
+each in its own subprocess, so one crash can't take down the others.
 """
 
 import sys
@@ -16,7 +25,7 @@ from app.context_engine.case_frame import CaseFrame
 from app.principle_selector.selector import select_techniques
 from app.narrative_gen.generator import NarrativeGenerator
 from app.tts.narrator import Narrator
-from app.image_gen.generator import ImageGenerator, build_image_prompt
+from app.image_gen.generator import build_image_prompt
 
 SAMPLE_INPUTS = [
     "I always mess everything up. My presentation tomorrow is going to be a total disaster and everyone will think I'm an idiot.",
@@ -32,7 +41,6 @@ def main():
     clf = EmotionClassifier()
     generator = NarrativeGenerator()
     narrator = Narrator()
-    img_gen = ImageGenerator()
 
     manifest = []
 
@@ -53,9 +61,7 @@ def main():
         audio_path = os.path.join(OUT_DIR, f"sample_{i}.wav")
         narrator.narrate(narrative, audio_path)
 
-        image_path = os.path.join(OUT_DIR, f"sample_{i}.png")
-        prompt = build_image_prompt(case_frame, primary)
-        img_gen.generate(prompt, image_path)
+        image_prompt = build_image_prompt(case_frame, primary)
 
         manifest.append({
             "input_text": text,
@@ -63,18 +69,21 @@ def main():
             "technique": primary["name"],
             "narrative": narrative,
             "audio": f"sample_{i}.wav",
-            "image": f"sample_{i}.png",
+            "image": None,  # filled in by pregenerate_images.py
+            "image_prompt": image_prompt,
         })
+
+        # Write after every sample, not just at the end, so a crash never
+        # loses more than the one sample in progress.
+        with open(os.path.join(OUT_DIR, "manifest.json"), "w", encoding="utf-8") as f:
+            json.dump(manifest, f, indent=2)
 
     clf.unload()
     generator.unload()
     narrator.unload()
-    img_gen.unload()
 
-    with open(os.path.join(OUT_DIR, "manifest.json"), "w", encoding="utf-8") as f:
-        json.dump(manifest, f, indent=2)
-
-    print(f"\nDone. {len(manifest)} sample sessions saved to {OUT_DIR}")
+    print(f"\nDone. {len(manifest)} sample sessions (text + audio) saved to {OUT_DIR}")
+    print("Run scripts/pregenerate_images.py next to add images.")
 
 
 if __name__ == "__main__":
