@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+*.pyc
+.env
+data/sessions/*.db
+data/sessions/*.wav
+data/sessions/*.png
+data/models_cache/
+*.onnx
+huggingface_cache/
+.cache/
+instance/
+*.log

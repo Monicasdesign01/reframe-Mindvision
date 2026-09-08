@@ -1,0 +1,45 @@
+--index-url https://download.pytorch.org/whl/cpu
+--extra-index-url https://pypi.org/simple
+
+# Core backend
+Flask==3.0.3
+python-dotenv==1.0.1
+
+# CPU-only PyTorch. Resolved in the SAME pip invocation as everything else
+# (via the index lines above) so the resolver only runs once and can't
+# leave two conflicting torch/numpy versions installed side by side.
+torch==2.3.1
+
+# Speech-to-text
+faster-whisper==1.0.3
+
+# NLP parsing
+spacy==3.7.5
+
+# Emotion detection (ONNX runtime, int8 quantized model)
+# optimum 1.20.0 caps transformers<4.42.0, so pin transformers to a
+# compatible version rather than the newest one.
+optimum[onnxruntime]==1.20.0
+onnxruntime==1.18.1
+transformers==4.41.2
+
+# Narrative generation (FLAN-T5, prompt-engineered only, no training)
+sentencepiece==0.2.0
+accelerate==0.32.1
+
+# Image generation (SD-Turbo)
+diffusers==0.29.2
+huggingface-hub==0.24.5
+safetensors==0.4.3
+
+# Voice narration
+kokoro==0.7.16
+soundfile==0.12.1
+
+# Utilities
+numpy==1.26.4
+scipy==1.13.1
+requests==2.32.3
+
+# Testing
+pytest==8.2.2

@@ -1,0 +1,110 @@
+"""
+Narrative generation using google/flan-t5-base (fallback: flan-t5-small),
+prompt-engineered only. No training/fine-tuning (hard constraint for
+Phases 1-3).
+
+Produces a strict 4-part narrative: current reality -> reframe -> desired
+future -> concrete next step. The prompt is engineered to (a) reliably hit
+all 4 parts with clear headers we can parse/display, and (b) never promise
+a guaranteed outcome ("you will definitely succeed") since that's both
+clinically irresponsible and not something the model can know.
+"""
+
+import gc
+
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+
+_MODEL_NAME_PRIMARY = "google/flan-t5-base"
+_MODEL_NAME_FALLBACK = "google/flan-t5-small"
+
+_BANNED_PHRASES = [
+    "you will definitely", "you'll definitely", "guaranteed to", "i promise you",
+    "you will certainly", "100% certain", "will always work out",
+]
+
+_PROMPT_TEMPLATE = """You are a supportive, evidence-informed narrative writer. Someone shared this worry:
+"{raw_text}"
+
+Their main emotion is {core_emotion}. A relevant psychological technique is: {technique_name} - {technique_description}
+
+Write a short, warm, second-person narrative in exactly four labeled parts. Do not skip any part. Do not promise a guaranteed outcome or use words like "definitely", "guaranteed", or "always". Keep each part to 1-3 sentences.
+
+CURRENT REALITY: describe their situation and feeling with empathy, using their own words where natural.
+REFRAME: gently introduce the technique above as one way to look at the thought differently, without dismissing the feeling.
+DESIRED FUTURE: describe a realistic, modest, positive future a few days or weeks out if they try this.
+NEXT STEP: give one small, concrete, doable action they could take today.
+
+Now write the four parts:
+"""
+
+
+class NarrativeGenerator:
+    def __init__(self, use_small: bool = False):
+        model_name = _MODEL_NAME_FALLBACK if use_small else _MODEL_NAME_PRIMARY
+        try:
+            self._tokenizer = AutoTokenizer.from_pretrained(model_name)
+            self._model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+        except Exception:
+            if use_small:
+                raise
+            # RAM-discipline fallback: base model failed to load, try small.
+            self._tokenizer = AutoTokenizer.from_pretrained(_MODEL_NAME_FALLBACK)
+            self._model = AutoModelForSeq2SeqLM.from_pretrained(_MODEL_NAME_FALLBACK)
+
+    def generate(self, case_frame, technique: dict) -> str:
+        prompt = _PROMPT_TEMPLATE.format(
+            raw_text=case_frame.raw_text,
+            core_emotion=case_frame.core_emotion or "unclear",
+            technique_name=technique["name"],
+            technique_description=technique["description"],
+        )
+        inputs = self._tokenizer(prompt, return_tensors="pt", truncation=True, max_length=512)
+        outputs = self._model.generate(
+            **inputs,
+            max_new_tokens=300,
+            do_sample=True,
+            temperature=0.7,
+            top_p=0.9,
+            no_repeat_ngram_size=3,
+        )
+        text = self._tokenizer.decode(outputs[0], skip_special_tokens=True)
+        text = self._sanitize(text)
+        text = self._ensure_four_parts(text, case_frame, technique)
+        return text
+
+    def _sanitize(self, text: str) -> str:
+        lowered = text.lower()
+        for phrase in _BANNED_PHRASES:
+            if phrase in lowered:
+                # Regenerate is expensive on CPU; instead soften in place.
+                idx = lowered.find(phrase)
+                text = text[:idx] + "this may help" + text[idx + len(phrase):]
+                lowered = text.lower()
+        return text
+
+    def _ensure_four_parts(self, text: str, case_frame, technique: dict) -> str:
+        """
+        FLAN-T5-base is prompt-followed reasonably well but not perfectly.
+        If any of the 4 required section headers are missing, fall back to
+        a deterministic template so the output contract (4 parts, always)
+        is guaranteed regardless of generation quality.
+        """
+        required = ["CURRENT REALITY", "REFRAME", "DESIRED FUTURE", "NEXT STEP"]
+        upper = text.upper()
+        if all(h in upper for h in required):
+            return text
+
+        return (
+            f"CURRENT REALITY: {case_frame.raw_text.strip()} It makes sense that this brings up "
+            f"{case_frame.core_emotion or 'difficult feelings'}.\n\n"
+            f"REFRAME: {technique['name']} suggests looking at this through a different lens: "
+            f"{technique['description']}\n\n"
+            f"DESIRED FUTURE: With some practice, it's realistic that this could feel a little more "
+            f"manageable in the coming days or weeks.\n\n"
+            f"NEXT STEP: Try one small action today related to this technique, even a two-minute version of it."
+        )
+
+    def unload(self):
+        del self._model
+        del self._tokenizer
+        gc.collect()
