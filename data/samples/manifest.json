@@ -1,0 +1,29 @@
+[
+  {
+    "input_text": "I always mess everything up. My presentation tomorrow is going to be a total disaster and everyone will think I'm an idiot.",
+    "summary": "feeling anger; showing all_or_nothing, self_labeling",
+    "technique": "Cognitive Restructuring",
+    "narrative": "CURRENT REALITY: I always mess everything up. My presentation tomorrow is going to be a total disaster and everyone will think I'm an idiot. It makes sense that this brings up anger.\n\nREFRAME: Cognitive Restructuring suggests looking at this through a different lens: Identifying an automatic negative thought, examining the evidence for and against it, and replacing it with a more balanced, realistic thought.\n\nDESIRED FUTURE: With some practice, it's realistic that this could feel a little more manageable in the coming days or weeks.\n\nNEXT STEP: Try one small action today related to this technique, even a two-minute version of it.",
+    "audio": "sample_1.wav",
+    "image": null,
+    "image_prompt": "A calm, gentle, hopeful illustration representing moving from anger toward cognitive restructuring, soft colors, minimalist, digital art, no text, no words"
+  },
+  {
+    "input_text": "I feel so alone lately, like nothing I do matters and no one would notice if I disappeared for a while.",
+    "summary": "feeling sadness; no strong distortion pattern",
+    "technique": "Cognitive Restructuring",
+    "narrative": "CURRENT REALITY: I feel so alone lately, like nothing I do matters and no one would notice if I disappeared for a while. It makes sense that this brings up sadness.\n\nREFRAME: Cognitive Restructuring suggests looking at this through a different lens: Identifying an automatic negative thought, examining the evidence for and against it, and replacing it with a more balanced, realistic thought.\n\nDESIRED FUTURE: With some practice, it's realistic that this could feel a little more manageable in the coming days or weeks.\n\nNEXT STEP: Try one small action today related to this technique, even a two-minute version of it.",
+    "audio": "sample_2.wav",
+    "image": null,
+    "image_prompt": "A calm, gentle, hopeful illustration representing moving from sadness toward cognitive restructuring, soft colors, minimalist, digital art, no text, no words"
+  },
+  {
+    "input_text": "I got passed over for the promotion again. I guess I'm just not good enough and I never will be.",
+    "summary": "feeling sadness; showing all_or_nothing",
+    "technique": "Cognitive Restructuring",
+    "narrative": "CURRENT REALITY: I got passed over for the promotion again. I guess I'm just not good enough and I never will be. It makes sense that this brings up sadness.\n\nREFRAME: Cognitive Restructuring suggests looking at this through a different lens: Identifying an automatic negative thought, examining the evidence for and against it, and replacing it with a more balanced, realistic thought.\n\nDESIRED FUTURE: With some practice, it's realistic that this could feel a little more manageable in the coming days or weeks.\n\nNEXT STEP: Try one small action today related to this technique, even a two-minute version of it.",
+    "audio": "sample_3.wav",
+    "image": null,
+    "image_prompt": "A calm, gentle, hopeful illustration representing moving from sadness toward cognitive restructuring, soft colors, minimalist, digital art, no text, no words"
+  }
+]
