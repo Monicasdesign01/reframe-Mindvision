@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>My Journey — Reframe</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <h1>My Journey</h1>
+    <nav><a href="/">Home</a> | <a href="/journey">My Journey</a></nav>
+  </header>
+
+  <main>
+    {% if recurring %}
+    <section class="recurring-note">
+      <h2>Recurring themes</h2>
+      <ul>
+        {% for technique_id, count in recurring.items() %}
+        <li>{{ technique_id.replace('_', ' ')|title }} has come up {{ count }} times.</li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    <section>
+      <h2>Past sessions</h2>
+      {% for s in sessions %}
+      <details class="session-card">
+        <summary>{{ s.created_at }} — {{ s.core_emotion }} — {{ s.input_text[:60] }}</summary>
+        <p><strong>Distortions:</strong> {{ s.distortions }}</p>
+        <p><strong>Technique(s):</strong> {{ s.techniques }}</p>
+        <pre>{{ s.narrative }}</pre>
+        {% if s.audio_path %}<audio controls src="/media/session_{{ s.id }}.wav"></audio>{% endif %}
+        {% if s.image_path %}<img src="/media/session_{{ s.id }}.png" style="max-width:300px">{% endif %}
+      </details>
+      {% else %}
+      <p>No sessions yet.</p>
+      {% endfor %}
+    </section>
+  </main>
+</body>
+</html>

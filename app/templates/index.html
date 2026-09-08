@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Reframe — Personalized Narrative & Voice</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <h1>Reframe</h1>
+    <nav><a href="/">Home</a> | <a href="/journey">My Journey</a></nav>
+  </header>
+
+  <main>
+    <section id="input-section">
+      <h2>What's on your mind?</h2>
+      <form id="worry-form">
+        <textarea id="text-input" rows="4" placeholder="Type what's worrying you..."></textarea>
+        <div class="row">
+          <input type="file" id="audio-input" accept="audio/*">
+          <button type="submit">Reframe this</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="crisis-section" class="hidden">
+      <div class="crisis-box"></div>
+    </section>
+
+    <section id="result-section" class="hidden">
+      <h2>Your narrative</h2>
+      <p id="summary" class="meta"></p>
+      <pre id="narrative"></pre>
+      <audio id="audio-player" controls class="hidden"></audio>
+      <div id="image-container">
+        <p id="image-loading">Generating an image for this...</p>
+        <img id="result-image" class="hidden" alt="Generated narrative image">
+      </div>
+      <p class="citation" id="citation"></p>
+    </section>
+
+    <section id="loading-section" class="hidden">
+      <p>Working through this — this can take a little while on a CPU-only machine...</p>
+    </section>
+  </main>
+
+  <script src="/static/main.js"></script>
+</body>
+</html>

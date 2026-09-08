@@ -1,0 +1,74 @@
+[
+  {
+    "id": "cognitive_restructuring",
+    "name": "Cognitive Restructuring",
+    "description": "Identifying an automatic negative thought, examining the evidence for and against it, and replacing it with a more balanced, realistic thought.",
+    "citation": "Beck, A. T. (1979). Cognitive Therapy of Depression. Guilford Press.",
+    "applies_to_distortions": ["all_or_nothing", "self_labeling", "overgeneralization"],
+    "applies_to_emotions": ["sadness", "anger"],
+    "limitations": "Requires enough self-reflective capacity to separate a thought from a fact; not a substitute for treatment of clinical depression."
+  },
+  {
+    "id": "decatastrophizing",
+    "name": "Decatastrophizing (\"What If\" Technique)",
+    "description": "Walking through the actually-likely outcome, the worst-case outcome, and how one would cope with the worst case, to reduce the perceived unbearability of a feared event.",
+    "citation": "Beck, A. T., Emery, G., & Greenberg, R. L. (1985). Anxiety Disorders and Phobias: A Cognitive Perspective. Basic Books.",
+    "applies_to_distortions": ["catastrophizing", "fortune_telling"],
+    "applies_to_emotions": ["fear", "anxiety"],
+    "limitations": "Can feel invalidating if used before the person feels heard; should follow, not replace, emotional validation."
+  },
+  {
+    "id": "behavioral_activation",
+    "name": "Behavioral Activation",
+    "description": "Scheduling small, concrete, achievable activities (especially ones tied to values or past enjoyment) to counteract withdrawal and low mood, rather than waiting to 'feel like it' first.",
+    "citation": "Jacobson, N. S., Dobson, K. S., Truax, P. A., et al. (1996). A component analysis of cognitive-behavioral treatment for depression. Journal of Consulting and Clinical Psychology, 64(2), 295-304.",
+    "applies_to_distortions": [],
+    "applies_to_emotions": ["sadness"],
+    "limitations": "Effortful to start precisely when motivation is lowest; works best with very small first steps."
+  },
+  {
+    "id": "self_compassion",
+    "name": "Self-Compassion Practice",
+    "description": "Responding to one's own suffering or perceived failure with the same kindness, warmth, and understanding one would offer a good friend, rather than harsh self-judgment.",
+    "citation": "Neff, K. D. (2003). Self-compassion: An alternative conceptualization of a healthy attitude toward oneself. Self and Identity, 2(2), 85-101.",
+    "applies_to_distortions": ["self_labeling"],
+    "applies_to_emotions": ["sadness", "anger"],
+    "limitations": "Can initially feel unfamiliar or 'soft' to people used to self-criticism as a motivator; benefits usually build with repeated practice."
+  },
+  {
+    "id": "values_clarification",
+    "name": "Values Clarification (ACT)",
+    "description": "Distinguishing what genuinely matters to the person (their values) from the anxious thought itself, then identifying one small action in line with that value regardless of the discomfort.",
+    "citation": "Hayes, S. C., Strosahl, K. D., & Wilson, K. G. (1999). Acceptance and Commitment Therapy: An Experiential Approach to Behavior Change. Guilford Press.",
+    "applies_to_distortions": ["fortune_telling"],
+    "applies_to_emotions": ["fear", "anxiety", "surprise"],
+    "limitations": "Not aimed at eliminating the anxious thought, which can be unsatisfying for someone wanting the thought itself to go away."
+  },
+  {
+    "id": "behavioral_experiment",
+    "name": "Behavioral Experiment",
+    "description": "Turning a feared prediction into a small, testable real-world experiment (e.g. 'if I ask, they will say no') to gather actual evidence instead of relying on assumption.",
+    "citation": "Bennett-Levy, J., Butler, G., Fennell, M., et al. (2004). Oxford Guide to Behavioural Experiments in Cognitive Therapy. Oxford University Press.",
+    "applies_to_distortions": ["fortune_telling", "catastrophizing"],
+    "applies_to_emotions": ["fear", "anxiety"],
+    "limitations": "Needs a genuinely testable, low-stakes prediction; not suitable for high-risk or irreversible situations."
+  },
+  {
+    "id": "gratitude_practice",
+    "name": "Gratitude Practice",
+    "description": "Deliberately noticing and recording a small number of specific positive things, which has been shown to shift attention away from a purely deficit-focused view of one's life.",
+    "citation": "Emmons, R. A., & McCullough, M. E. (2003). Counting blessings versus burdens: An experimental investigation of gratitude and subjective well-being. Journal of Personality and Social Psychology, 84(2), 377-389.",
+    "applies_to_distortions": ["overgeneralization"],
+    "applies_to_emotions": ["sadness", "neutral"],
+    "limitations": "Not appropriate as a first response to acute distress; can read as dismissive if offered too early."
+  },
+  {
+    "id": "problem_solving_therapy",
+    "name": "Structured Problem-Solving",
+    "description": "Breaking an overwhelming situation into a defined problem, a brainstormed list of options, a chosen option, and one concrete next action, to counter paralysis in the face of a large stressor.",
+    "citation": "D'Zurilla, T. J., & Nezu, A. M. (2007). Problem-Solving Therapy: A Positive Approach to Clinical Intervention (3rd ed.). Springer.",
+    "applies_to_distortions": ["catastrophizing", "all_or_nothing"],
+    "applies_to_emotions": ["anger", "fear", "anxiety"],
+    "limitations": "Less useful when the core issue is an internal emotional state rather than an external, actionable problem."
+  }
+]
