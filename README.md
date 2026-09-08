@@ -70,6 +70,25 @@ Then open http://127.0.0.1:5000 in a browser.
 Total: roughly 3.5-4GB. All are cached locally by Hugging Face after the
 first download (default cache: `~/.cache/huggingface`).
 
+## A note on RAM if image generation crashes
+
+SD-Turbo's VAE-decode step needs real headroom (roughly 2-3GB free even at
+the reduced 256x256 resolution this project uses by default, more at
+512x512). If image generation segfaults, it is almost always a failed
+native memory allocation under memory pressure, not a code bug -- this was
+observed directly during development on a 3.77GB-RAM laptop, where the
+crash disappeared once enough RAM was freed. If you hit this:
+
+- Close other applications, especially browsers and IDEs, before running
+  the app -- an IDE/editor session can itself hold several hundred MB.
+- Run `python -m app.main` from a plain terminal rather than from inside
+  an editor's integrated terminal or AI coding assistant, since those add
+  their own memory overhead on top of Python's.
+- If it still crashes, lower `IMAGE_SIZE` in `app/image_gen/generator.py`
+  (e.g. to 128), or treat image generation as a "works when RAM allows"
+  feature and rely on the pre-generated sample sessions
+  (`scripts/pregenerate_samples.py`) for the demo.
+
 ## Running with Docker (optional; requires Docker Desktop + WSL2)
 
 ```powershell
