@@ -10,6 +10,12 @@ Usage:
 
 import sys
 import os
+
+# Must be set before torch/CTranslate2 are imported: faster-whisper and
+# PyTorch's bundled MKL both link their own OpenMP runtime, which aborts
+# the process the first time both are loaded together (see app/main.py).
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+
 import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
