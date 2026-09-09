@@ -24,6 +24,7 @@ from app.emotion.classifier import EmotionClassifier
 from app.context_engine.case_frame import CaseFrame
 from app.principle_selector.selector import select_techniques
 from app.narrative_gen.generator import NarrativeGenerator
+from app.narrative_gen.affirmations import build_affirmation
 from app.tts.narrator import Narrator
 from app.image_gen.generator import build_image_prompt
 
@@ -58,8 +59,13 @@ def main():
 
         narrative = generator.generate(case_frame, primary)
 
+        # Affirmation, not the narrative text itself -- matches app/main.py's
+        # live TTS behavior, which reads a short affirmation aloud instead
+        # of repeating what's already shown (and, since Phase 4, drawn) on
+        # screen.
         audio_path = os.path.join(OUT_DIR, f"sample_{i}.wav")
-        narrator.narrate(narrative, audio_path)
+        affirmation = build_affirmation(core_emotion, primary["name"])
+        narrator.narrate(affirmation, audio_path)
 
         image_prompt = build_image_prompt(case_frame, primary)
 

@@ -35,7 +35,8 @@ from app.nlp.distortions import detect_distortions
 from app.emotion.classifier import EmotionClassifier
 from app.context_engine.case_frame import CaseFrame
 from app.principle_selector.selector import select_techniques
-from app.narrative_gen.generator import NarrativeGenerator
+from app.narrative_gen.generator import NarrativeGenerator, parse_narrative_parts
+from app.narrative_gen.affirmations import build_affirmation
 from app.db.schema import init_db
 from app.db import repository
 
@@ -119,15 +120,24 @@ def process():
     # 8. Save to DB now (audio/image paths filled in below/async).
     session_id = repository.save_session(case_frame, narrative)
 
-    # 9. TTS synchronously (fast enough not to block the response).
-    audio_path = _run_tts(session_id, narrative)
+    # 9. TTS synchronously (fast enough not to block the response). Narrates
+    # a short first-person affirmation, not the narrative text itself --
+    # that's already shown, and now drawn, on screen, so reading it aloud
+    # verbatim would just be redundant.
+    affirmation = build_affirmation(case_frame.core_emotion, primary_technique["name"])
+    audio_path = _run_tts(session_id, affirmation)
 
     # 10. Image generation in background thread; frontend polls /image_status.
+    # Builds a 3-panel CURRENT REALITY / REFRAME / DESIRED FUTURE storyboard
+    # (see app/image_gen/storyboard.py) rather than one plain illustration.
     _image_status[str(session_id)] = {"status": "pending", "path": None}
-    image_prompt = _build_image_prompt(case_frame, primary_technique)
+    narrative_parts = parse_narrative_parts(narrative)
+    panel_prompts, panel_subtitles = _build_panel_prompts_and_subtitles(
+        case_frame.core_emotion, primary_technique["name"]
+    )
     threading.Thread(
         target=_generate_image_background,
-        args=(session_id, image_prompt),
+        args=(session_id, panel_prompts, panel_subtitles, narrative_parts),
         daemon=True,
     ).start()
 
@@ -195,34 +205,60 @@ def _run_tts(session_id: int, narrative: str) -> str:
     return output_path
 
 
-def _build_image_prompt(case_frame, technique) -> str:
-    from app.image_gen.generator import build_image_prompt
-    return build_image_prompt(case_frame, technique)
+def _build_panel_prompts_and_subtitles(core_emotion: str, technique_name: str):
+    from app.image_gen.generator import build_panel_prompts, build_panel_subtitles
+    return build_panel_prompts(core_emotion, technique_name), build_panel_subtitles(core_emotion, technique_name)
 
 
 _IMAGE_WORKER_CODE = """
+import os
 import sys
 sys.path.insert(0, {project_root!r})
 from app.image_gen.generator import ImageGenerator
+from app.image_gen.storyboard import compose_storyboard
+
+prompts = {prompts!r}
+panel_paths = {panel_paths!r}
+seed = {seed!r}
 
 gen = ImageGenerator()
-gen.generate({prompt!r}, {output_path!r})
+for prompt, path in zip(prompts, panel_paths):
+    gen.generate(prompt, path, seed=seed, num_inference_steps=2)
 gen.unload()
+
+compose_storyboard(panel_paths, {subtitles!r}, {narrative_parts!r}, {output_path!r})
+
+for p in panel_paths:
+    try:
+        os.remove(p)
+    except OSError:
+        pass
 """
 
 
-def _generate_image_background(session_id: int, prompt: str):
+def _generate_image_background(session_id: int, prompts: list, subtitles: list, narrative_parts: dict):
     """
-    Runs SD-Turbo in a separate subprocess rather than in-thread. On a
-    RAM-constrained machine, SD-Turbo's VAE-decode step can segfault (see
-    README's RAM note) -- and a segfault kills the entire process it runs
-    in, threads included, which would take down the whole Flask server and
-    every other in-flight request along with it. Isolating it in a
-    subprocess means a crash there only fails that one image.
+    Runs SD-Turbo (three times, one per storyboard panel) in a separate
+    subprocess rather than in-thread. On a RAM-constrained machine,
+    SD-Turbo's VAE-decode step can segfault (see README's RAM note) -- and a
+    segfault kills the entire process it runs in, threads included, which
+    would take down the whole Flask server and every other in-flight
+    request along with it. Isolating it in a subprocess means a crash there
+    only fails that one image. The panel compositing (storyboard.py) also
+    runs in this same subprocess, after all three panels are generated.
     """
     output_path = os.path.join(MEDIA_DIR, f"session_{session_id}.png")
+    panel_paths = [os.path.join(MEDIA_DIR, f"session_{session_id}_panel{i + 1}.png") for i in range(3)]
     try:
-        code = _IMAGE_WORKER_CODE.format(project_root=BASE_DIR, prompt=prompt, output_path=output_path)
+        code = _IMAGE_WORKER_CODE.format(
+            project_root=BASE_DIR,
+            prompts=prompts,
+            panel_paths=panel_paths,
+            seed=session_id,  # fixed per-session seed keeps the 3 panels' palette/style cohesive
+            subtitles=subtitles,
+            narrative_parts=narrative_parts,
+            output_path=output_path,
+        )
         result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, timeout=300)
 
         if result.returncode == 0 and os.path.exists(output_path):

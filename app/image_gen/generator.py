@@ -42,13 +42,19 @@ class ImageGenerator:
         self._pipe.enable_vae_slicing()
 
     def generate(self, prompt: str, output_path: str, num_inference_steps: int = 1,
-                 size: int = IMAGE_SIZE) -> str:
+                 size: int = IMAGE_SIZE, seed: int = None) -> str:
+        # A fixed seed across the three storyboard panels (see
+        # build_panel_prompts) keeps their color palette and style visually
+        # cohesive even though SD-Turbo has no built-in way to keep the same
+        # illustrated figure identical across separate generations.
+        generator = torch.Generator(device="cpu").manual_seed(seed) if seed is not None else None
         image = self._pipe(
             prompt=prompt,
             num_inference_steps=num_inference_steps,
             guidance_scale=0.0,  # SD-Turbo is trained for guidance_scale=0
             height=size,
             width=size,
+            generator=generator,
         ).images[0]
         image.save(output_path)
         return output_path
@@ -62,8 +68,52 @@ def build_image_prompt(case_frame, technique: dict) -> str:
     """
     Turns the case frame + chosen technique into a short, calm, non-literal
     illustrative prompt (avoids depicting distressing scenes literally).
+    Kept for scripts/pregenerate_samples.py's manifest field; the live app
+    uses build_panel_prompts (three panels) instead -- see main.py.
     """
     return (
         f"A calm, gentle, hopeful illustration representing moving from {case_frame.core_emotion or 'worry'} "
         f"toward {technique['name'].lower()}, soft colors, minimalist, digital art, no text, no words"
     )
+
+
+def build_panel_prompts(core_emotion: str, technique_name: str) -> list:
+    """
+    Three prompts for a CURRENT REALITY / REFRAME / DESIRED FUTURE
+    storyboard: same illustrated-figure description and art style in each,
+    varying only the concrete pose/scene, so that -- combined with a shared
+    seed in ImageGenerator.generate -- the three panels read as one visual
+    sequence rather than three unrelated pictures.
+
+    Deliberately concrete (a specific pose/setting) rather than abstract
+    psychological language: SD-Turbo has nothing to draw for a phrase like
+    "using cognitive restructuring" (it's not a visual concept), and testing
+    showed abstract prompts produced vague, figure-less color gradients
+    instead of a recognizable scene. The technique name is shown as a text
+    subtitle instead (see build_panel_subtitles), not asked of the image
+    model. Also avoids depicting the distressing content literally.
+    """
+    emotion = core_emotion or "worried"
+    figure = (
+        "a simple minimalist illustration of one person, soft muted color palette, "
+        "gentle lighting, clean flat digital art style, no text, no words"
+    )
+    return [
+        f"{figure}, sitting at a desk with head resting on their hands, slouched and tired, feeling {emotion}",
+        f"{figure}, sitting cross-legged, writing thoughtfully in an open notebook, calm focused expression",
+        f"{figure}, standing outside looking toward a soft sunrise, relaxed steady posture, warm hopeful colors",
+    ]
+
+
+def build_panel_subtitles(core_emotion: str, technique_name: str) -> list:
+    """
+    Short captions shown under each panel's header. Panel 3 deliberately
+    avoids promising an outcome (e.g. "you achieve your goal") -- the
+    narrative generator's banned-phrase list exists for the same reason: no
+    guaranteed outcome, ever.
+    """
+    return [
+        f"Feeling {core_emotion or 'this'}",
+        f"Try {technique_name}",
+        "One step at a time",
+    ]
