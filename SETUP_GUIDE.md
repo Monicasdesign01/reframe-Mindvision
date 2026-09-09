@@ -51,6 +51,17 @@ git clone https://github.com/Monicasdesign01/reframe-Mindvision.git
 cd reframe-Mindvision
 ```
 
+**OR**, if you use VS Code and prefer clicking over typing:
+
+1. Open VS Code
+2. Press `Ctrl+Shift+P`, type **"Git: Clone"**, press Enter
+3. Paste this URL: `https://github.com/Monicasdesign01/reframe-Mindvision.git`
+4. Pick a folder to save it in, then click **"Open"** when it asks
+
+Either way you end up with the same project folder — just use VS Code's
+built-in terminal (`` Ctrl+` ``) for every command in the rest of this
+guide if you cloned this way.
+
 ## Step 5 — Create the app's own Python environment
 
 This keeps its packages separate from anything else on your computer.
