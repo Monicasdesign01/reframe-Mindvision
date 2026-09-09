@@ -1,8 +1,13 @@
 """
-Adds images to the manifest produced by pregenerate_samples.py, one at a
-time, each in its own subprocess. A subprocess crash (e.g. the SD-Turbo
-VAE-decode segfault seen on low-RAM machines -- see README) only loses
-that one image; the manifest and every other sample are unaffected.
+Adds storyboard images to the manifest produced by pregenerate_samples.py,
+one at a time, each in its own subprocess. A subprocess crash (e.g. the
+SD-Turbo VAE-decode segfault seen on low-RAM machines -- see README) only
+loses that one image; the manifest and every other sample are unaffected.
+
+Each image is a 3-panel CURRENT REALITY / REFRAME / DESIRED FUTURE
+storyboard (see app/image_gen/storyboard.py), built from that sample's own
+narrative and technique -- same generation path the live app uses in
+app/main.py's _generate_image_background.
 
 Run after pregenerate_samples.py, ideally with other applications closed
 to free RAM:
@@ -11,6 +16,7 @@ to free RAM:
 
 import sys
 import os
+import re
 import json
 import subprocess
 
@@ -18,20 +24,54 @@ OUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 MANIFEST_PATH = os.path.join(OUT_DIR, "manifest.json")
 
 _WORKER_CODE = """
+import os
 import sys
 sys.path.insert(0, {project_root!r})
-from app.image_gen.generator import ImageGenerator
+from app.image_gen.generator import ImageGenerator, build_panel_prompts, build_panel_subtitles
+from app.image_gen.storyboard import compose_storyboard
+from app.narrative_gen.generator import parse_narrative_parts
+
+core_emotion = {core_emotion!r}
+technique_name = {technique_name!r}
+narrative_parts = parse_narrative_parts({narrative!r})
+
+prompts = build_panel_prompts(core_emotion, technique_name)
+subtitles = build_panel_subtitles(core_emotion, technique_name)
+panel_paths = {panel_paths!r}
 
 gen = ImageGenerator()
-gen.generate({prompt!r}, {output_path!r})
+for prompt, path in zip(prompts, panel_paths):
+    gen.generate(prompt, path, seed={seed!r}, num_inference_steps=2)
 gen.unload()
+
+compose_storyboard(panel_paths, subtitles, narrative_parts, {output_path!r})
+
+for p in panel_paths:
+    try:
+        os.remove(p)
+    except OSError:
+        pass
 print("OK")
 """
 
 
-def generate_one(prompt: str, output_path: str) -> bool:
+def _extract_core_emotion(summary: str) -> str:
+    match = re.search(r"feeling (\w+)", summary or "")
+    return match.group(1) if match else "worry"
+
+
+def generate_one(entry: dict, output_path: str, seed: int) -> bool:
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    code = _WORKER_CODE.format(project_root=project_root, prompt=prompt, output_path=output_path)
+    panel_paths = [output_path.replace(".png", f"_panel{i + 1}.png") for i in range(3)]
+    code = _WORKER_CODE.format(
+        project_root=project_root,
+        core_emotion=_extract_core_emotion(entry.get("summary", "")),
+        technique_name=entry.get("technique", "Cognitive Restructuring"),
+        narrative=entry.get("narrative", ""),
+        panel_paths=panel_paths,
+        output_path=output_path,
+        seed=seed,
+    )
     python_exe = sys.executable
     result = subprocess.run([python_exe, "-c", code], capture_output=True, text=True)
     return result.returncode == 0 and os.path.exists(output_path)
@@ -51,8 +91,11 @@ def main():
             continue
 
         image_path = os.path.join(OUT_DIR, f"sample_{i}.png")
-        print(f"[{i}/{len(manifest)}] generating image...")
-        success = generate_one(entry["image_prompt"], image_path)
+        print(f"[{i}/{len(manifest)}] generating storyboard...")
+        # A distinct seed per sample, not a shared constant, so multiple
+        # demo sessions shown together (e.g. on the Journey page) don't all
+        # render the same illustrated figure and scene.
+        success = generate_one(entry, image_path, seed=42 + i)
 
         if success:
             entry["image"] = f"sample_{i}.png"

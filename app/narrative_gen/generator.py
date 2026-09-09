@@ -11,6 +11,7 @@ clinically irresponsible and not something the model can know.
 """
 
 import gc
+import re
 
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
@@ -155,3 +156,26 @@ class NarrativeGenerator:
         del self._model
         del self._tokenizer
         gc.collect()
+
+
+_SECTION_HEADERS = ["CURRENT REALITY", "REFRAME", "DESIRED FUTURE", "NEXT STEP"]
+
+
+def parse_narrative_parts(narrative: str) -> dict:
+    """
+    Splits a generated narrative into its four labeled parts, keyed
+    "current_reality" / "reframe" / "desired_future" / "next_step". Used to
+    build the storyboard image's per-panel captions (see
+    app/image_gen/storyboard.py). Safe on both the FLAN-T5 output and the
+    deterministic fallback template above, since both are guaranteed to
+    contain all four headers by _validate_or_fallback.
+    """
+    pattern = r"(" + "|".join(_SECTION_HEADERS) + r"):\s*"
+    pieces = re.split(pattern, narrative)
+    parts = {}
+    for i in range(1, len(pieces) - 1, 2):
+        key = pieces[i].strip().lower().replace(" ", "_")
+        parts[key] = pieces[i + 1].strip()
+    for key in ("current_reality", "reframe", "desired_future", "next_step"):
+        parts.setdefault(key, "")
+    return parts
