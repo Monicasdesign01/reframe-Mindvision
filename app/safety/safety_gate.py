@@ -4,7 +4,7 @@ Crisis / self-harm safety gate.
 This runs FIRST, on every single request, before any other processing
 (before spaCy, before emotion detection, before narrative generation).
 
-Design intent (explain this in the viva):
+Design intent :
 - It is deliberately simple: keyword/rule-based, not a learned classifier.
   A rule-based gate is auditable and its failure modes are predictable,
   which matters far more here than recall/precision tradeoffs of a model
